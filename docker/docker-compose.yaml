@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  ms_rest:
+    container_name: ms_rest
+    build: dockerfile/php
+    restart: on-failure
+    expose:
+      - "9000"
+    volumes:
+      - ../src:/var/www/laravel
+    links:
+      - db_rest
+    entrypoint: >
+      sh -c "composer install --ignore-platform-req=ext-http && php-fpm"
+
+  nginx_notification:
+    container_name: nginx_notification
+    image: nginx:latest
+    restart: on-failure
+    ports:
+      - "8000:80"
+    volumes:
+      - ../src:/var/www/laravel
+      - ./config/nginx:/etc/nginx/conf.d
+    links:
+      - ms_rest
+
+  db_rest:
+    container_name: db_rest
+    ports:
+      - "5438:5432"
+    volumes:
+      - ./postgresql/data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_NAME=db_rest
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_USER=admin
+    image: postgres:14.3-alpine
+
+
+
+
+
+
